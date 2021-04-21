@@ -10,6 +10,13 @@ import android.view.MenuItem
 import android.net.Uri
 import android.os.Environment
 
+import java.io.File
+
+import com.artifex.sonui.editor.DocumentView
+import com.artifex.solib.FileUtils
+import com.artifex.solib.ArDkLib
+import com.artifex.sonui.editor.Utilities
+
 class MainActivity : AppCompatActivity() {
     var isSetup : Boolean = false
 
@@ -19,8 +26,29 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar))
 
         findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { view ->
-            Snackbar.make(view, "Hello world!", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+
+            if (!isSetup) {
+                Snackbar.make(view, "Setting up!", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show()
+
+                Utilities.setDataLeakHandlers(DataLeakHandlers())
+                Utilities.setPersistentStorage(PersistentStorage())
+                ArDkLib.setClipboardHandler(ClipboardHandler())
+                ArDkLib.setSecureFS(SecureFS())
+                FileUtils.init(this)
+                isSetup = true
+            }
+            else {
+                Snackbar.make(view, "Already set up!", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show()
+            }
+
+            var dirpath : String = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath()
+            var filepath : String = dirpath + File.separator + "test.pdf"
+
+            val documentView : DocumentView = findViewById<View>(R.id.doc_view) as DocumentView
+            documentView.start(Uri.fromFile(File(filepath)), 0, true)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
